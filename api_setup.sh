@@ -56,6 +56,8 @@ fi
 
 SubscriptionId=$(jq -n "$x" | jq .["$((subscription_number-1))"].id -r)
 
+az account set --subscription $SubscriptionId
+
 echo -e "Running with settings:"
 echo -e "Subscription:" $GREEN$(jq -n "$x" | jq .["$((subscription_number-1))"].name )  $SubscriptionId$NC
 
@@ -67,22 +69,21 @@ echo -e "Subscription:" $GREEN$(jq -n "$x" | jq .["$((subscription_number-1))"].
 CLOUDSHELL_RANDOM=$(date +%s | sha256sum | base64 | head -c 12;echo)$(echo $RANDOM)
 CLOUDSHELL_RANDOM="$(echo $CLOUDSHELL_RANDOM | tr '[A-Z]' '[a-z]')"
 AppName=$(echo "CLOUDSHELL-"$CLOUDSHELL_RANDOM)
-AppKey=$(openssl rand -base64 32)
 TenantId=$(az account show --query tenantId -o tsv)
 
 
 echo -e "Creating AD application for CloudShell"
-az ad sp create-for-rbac -n $AppName --password $AppKey --subscription $SubscriptionId ||  quit_on_err "The user that runs the script should be an Owner."
+AppKey=$(az ad sp create-for-rbac -n $AppName | jq -r '.password') ||  quit_on_err "The user that runs the script should be an Owner."
+az ad sp credential reset -n $AppName --password $AppKey --end-date '2299-12-31'
 
-
-AppId=$(az ad app list --subscription $SubscriptionId --display-name $AppName | jq '.[0].appId' | tr -d \")
+AppId=$(az ad app list $SubscriptionId --display-name $AppName | jq '.[0].appId' | tr -d \")
 
 echo -e "Configuring access to Azure API"
 bash -c "cat >> role.json" <<EOL
 [{"resourceAppId": "797f4846-ba00-4fd7-ba43-dac1f8f63013","resourceAccess":[{"id": "41094075-9dad-400e-a0bd-54e686782033", "type":"Scope"}]}]
 EOL
  
-az ad app update --id $AppId --required-resource-accesses role.json --subscription $SubscriptionId
+az ad app update --id $AppId --required-resource-accesses role.json
 rm role.json
 
 #========================================================================================
