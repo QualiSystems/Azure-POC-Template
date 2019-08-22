@@ -76,7 +76,7 @@ echo -e "Creating AD application for CloudShell"
 AppKey=$(az ad sp create-for-rbac -n $AppName | jq -r '.password') ||  quit_on_err "The user that runs the script should be an Owner."
 az ad sp credential reset -n $AppName --password $AppKey --end-date '2299-12-31'
 
-AppId=$(az ad app list $SubscriptionId --display-name $AppName | jq '.[0].appId' | tr -d \")
+AppId=$(az ad app list --display-name $AppName | jq '.[0].appId' | tr -d \")
 
 echo -e "Configuring access to Azure API"
 bash -c "cat >> role.json" <<EOL
