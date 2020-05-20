@@ -45,7 +45,7 @@
     "virtualMachineCsName": "QualiCsVm",
     "virtualMachinePoName": "QualiPortalVm",
     "storageAccountName": "[concat('storage',uniquestring(resourceGroup().id))]",
-    "qualixscriptUrl": "https://raw.githubusercontent.com/QualiSystems/Azure-POC-Template/master/guacamole-quali-install.sh",
+    "qualixscriptUrl": "https://s3.amazonaws.com/quali-prod-binaries/guacamole-quali-install.sh",
     "commandToExe": "sh guacamole-quali-install.sh",
     "vmSize": "Standard_DS4_v2",
 	"osDiskType": "Premium_LRS",
